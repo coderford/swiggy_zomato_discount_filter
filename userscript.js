@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Swiggy & Zomato - Discount Filter
 // @namespace    http://tampermonkey.net/
-// @version      2024-05-19
+// @version      2024-05-20
 // @description  On Swiggy and Zomato, allows you to filter restaurants by minimum discount offered
 // @author       coderford
 // @license      GPL-3.0-or-later
@@ -30,6 +30,11 @@
 (function() {
     'use strict';
 
+    var filterKeywords = [
+        'cake',
+        'donut',
+    ];
+
     var getRestaurantGridCards = function() {
         var prefix = 'styled__StyledRestaurantGridCard';
         var gridCards = document.querySelectorAll(`[class^="${prefix}"]`);
@@ -54,6 +59,53 @@
         return filteredCnt;
     };
 
+    var getRestaurantTitle = function(gridCard) {
+        var regex = /alt="([^"]+)"/;
+        var match = gridCard.outerHTML.match(regex);
+        if (match) {
+            return match[1];
+        }
+        return "";
+    };
+
+    var filterByKeywords = function(gridCards) {
+        var filteredCnt = 0;
+        for (var i = 0; i < gridCards.length; i++) {
+            var card = gridCards[i];
+            var restaurantTitle = getRestaurantTitle(card);
+            for (var j = 0; j < filterKeywords.length; j++) {
+                var kw = filterKeywords[j];
+                if (restaurantTitle.toLowerCase().indexOf(kw) !== -1) {
+                    hideCard(card);
+                    filteredCnt += 1;
+                    break;
+                }
+            }
+
+        }
+        return filteredCnt;
+    };
+
+    var removeDuplicates = function(gridCards) {
+        // Dedupe restaurants based on textContent
+        var hiddenCnt = 0;
+        gridCards = [...new Set(gridCards)];
+        const seenTextContent = new Set();
+
+        // Filter the elements based on their textContent
+        gridCards.forEach(element => {
+            const text = element.textContent;
+            if (seenTextContent.has(text)) {
+                // Duplicate found, hide this element
+                hideCard(element);
+                hiddenCnt += 1;
+            } else {
+                // New textContent, add to the Set
+                seenTextContent.add(text);
+            }
+        });
+        return hiddenCnt;
+    };
 
     var hideCard = function(element) {
         if (element && element.parentNode && element.parentNode.parentNode) {
@@ -65,11 +117,16 @@
     var runFilter = function() {
         var gridCards = getRestaurantGridCards();
         var numCards = gridCards.length;
-        var filteredCnt = filterByMinDiscount(gridCards, 50);
-        console.log('Filtered ' + filteredCnt + '/' + gridCards.length + ' restaurants');
+        var filteredCntDiscount = filterByMinDiscount(gridCards, 50);
+        // console.log('Filtered ' + filteredCntDiscount + '/' + gridCards.length + ' restaurants by discount');
+        var filteredCntKeywords = filterByKeywords(gridCards);
+        // console.log('Filtered ' + filteredCntKeywords + '/' + gridCards.length + ' restaurants by keywords');
+
+        var dupeHiddenCnt = removeDuplicates(gridCards);
+        // console.log('Removed ' + dupeHiddenCnt + ' duplicates');
     };
 
-    var runShowMore = function(stopThreshold=50) {
+    var runShowMore = function(stopThreshold=100) {
         var gridCards = getRestaurantGridCards();
         var prefix = 'RestaurantList__ShowMoreContainer';
         if (gridCards.length < stopThreshold) {
@@ -78,8 +135,8 @@
         }
     };
 
-    // setTimeout(run, 3000);
-    setInterval(runFilter, 200);
-    setInterval(runShowMore, 100);
+    var regex = /alt="([^"]+)"/;
+    setInterval(runFilter, 300);
+    setInterval(runShowMore, 200);
 
 })();
