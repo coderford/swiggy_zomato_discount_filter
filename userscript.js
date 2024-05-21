@@ -33,6 +33,14 @@
     var filterKeywords = [
         'cake',
         'donut',
+        'gelato',
+        'coffee',
+        'warm begin',
+        'pastry',
+        'ice cream',
+        'dessert',
+        'patisserie',
+        'shake',
     ];
 
     var getRestaurantGridCards = function() {
@@ -126,7 +134,7 @@
         // console.log('Removed ' + dupeHiddenCnt + ' duplicates');
     };
 
-    var runShowMore = function(stopThreshold=100) {
+    var runShowMore = function(stopThreshold=200) {
         var gridCards = getRestaurantGridCards();
         var prefix = 'RestaurantList__ShowMoreContainer';
         if (gridCards.length < stopThreshold) {
