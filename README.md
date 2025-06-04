@@ -5,7 +5,7 @@ Also keeps loading more restaurants on initial page load until at least 50 match
 
 ### Offers pages
 
-- Swiggy: https://swiggy.com/offers-near-me
+- Swiggy: https://www.swiggy.com/food-offer-near-me
 - Zomato: _Pending_
 
 :warning: _Currently only supports Swiggy_
